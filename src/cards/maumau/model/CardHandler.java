@@ -73,7 +73,11 @@ class CardHandler {
      * Deals cards to all players.
      */
     void dealCards() {
-        //TODO implement
+        for (int index = 0; index < this.numCardsPerPlayer; index++) {
+            for (Player player: this.game.getPlayers()) {
+                player.drawCards(1);
+            }
+        }
     }
 
     /**
