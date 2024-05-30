@@ -23,7 +23,10 @@ public record Card(Rank rank, Suit suit) implements Comparable<Card> {
      */
     @Override
     public int compareTo(Card other) {
-        //TODO implement
-        return 0;
+        if (this.rank.compareTo(other.rank) != 0) {
+            return this.rank.compareTo(other.rank);
+        } else {
+            return this.suit.compareTo(other.suit);
+        }
     }
 }
