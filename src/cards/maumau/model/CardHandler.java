@@ -78,6 +78,7 @@ class CardHandler {
                 player.drawCards(1);
             }
         }
+        this.discardPile.add(this.drawPile.removeFirst());
     }
 
     /**
