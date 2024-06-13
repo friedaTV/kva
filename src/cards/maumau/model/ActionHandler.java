@@ -15,13 +15,13 @@ class ActionHandler {
     /**
      * State pattern.
      */
-    private GamePlayState initializedState = new InitializedState();
-    private GamePlayState normalState = new NormalState();
-    private GamePlayState sevenChosenState = new SevenChosenState();
-    private GamePlayState suitChosenState = new SuitChosenState();
-    private GamePlayState jackChosenState = new JackChosenState();
-    private GamePlayState gameFinishedState = new GameFinishedState();
-    private GamePlayState gameCanceledState = new GameCanceledState();
+    private final GamePlayState initializedState = new InitializedState();
+    private final GamePlayState normalState = new NormalState();
+    private final GamePlayState sevenChosenState = new SevenChosenState();
+    private final GamePlayState suitChosenState = new SuitChosenState();
+    private final GamePlayState jackChosenState = new JackChosenState();
+    private final GamePlayState gameFinishedState = new GameFinishedState();
+    private final GamePlayState gameCanceledState = new GameCanceledState();
     private GamePlayState gamePlayState;
 
     /**
@@ -152,13 +152,10 @@ class ActionHandler {
     GameState getGameState() {
         return switch (gamePlayState) {
             case InitializedState s -> GameState.GAME_INITIALIZED;
-            case NormalState s -> GameState.PLAY;
-            case SevenChosenState s -> GameState.PLAY;
             case JackChosenState s -> GameState.CHOOSE_SUIT;
-            case SuitChosenState s -> GameState.PLAY;
             case GameFinishedState s -> GameState.GAME_OVER;
             case GameCanceledState s -> GameState.GAME_CANCELED;
-            default -> GameState.GAME_OVER;
+            default -> GameState.PLAY;
         };
     }
 
@@ -169,16 +166,15 @@ class ActionHandler {
      * @return True if the card can be played, false otherwise.
      */
     boolean canPlay(Card c) {
-        if (this.getGameState() == GameState.CHOOSE_SUIT &&
-            c.suit() == game.getCardHandler().getDiscardPile().getFirst().suit() &&
-            c.rank() != Rank.JACK) {
-            return true;
-        } else if (c.rank() == Rank.JACK && getChosenSuit() == c.suit()) {
-            return true;
-        } else {
+        if (gamePlayState == suitChosenState) {
+            return c.suit() == getChosenSuit() && c.rank() != Rank.JACK;
+        } else if (gamePlayState == sevenChosenState) {
+            return c.rank() == Rank.SEVEN;
+        } else if (gamePlayState == normalState) {
             Card top = game.getCardHandler().getDiscardPile().getFirst();
-            return c.rank() == top.rank() || c.suit() == top.suit();
+            return c.rank() == top.rank() || c.suit() == top.suit() || c.rank() == Rank.JACK;
         }
+        return false;
     }
 
     /**
@@ -294,7 +290,7 @@ class ActionHandler {
          */
         @Override
         public void finishGame() {
-            /* no action in this state */
+            gamePlayState = gameFinishedState;
         }
 
         /**
@@ -302,7 +298,7 @@ class ActionHandler {
          */
         @Override
         public void cancelGame() {
-            /* no action in this state */
+            gamePlayState = gameCanceledState;
         }
     }
 
@@ -451,7 +447,7 @@ class ActionHandler {
          */
         @Override
         public void no7() {
-            if (game.getCardHandler().getDiscardPile().size() + game.getCardHandler().getDrawPile().size() < 2 * get7Counter()) {
+            if (game.getCardHandler().getDiscardPile().size() + game.getCardHandler().getDrawPile().size() - 1 < 2 * get7Counter()) {
                 gamePlayState = gameCanceledState;
             } else {
                 game.getPlayerHandler().getCurrentPlayer().drawCards(2 * get7Counter());
