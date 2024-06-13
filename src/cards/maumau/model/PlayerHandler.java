@@ -266,6 +266,7 @@ class PlayerHandler {
                 finishPlayer(p);
                 if (players.size() == 1) {
                     finishPlayer(getCurrentPlayer());
+                    game.getActionHandler().finishGame();
                     currentState = finishedState;
                 } else {
                     currentState = waitForNextTurnState;
