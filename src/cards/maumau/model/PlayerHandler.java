@@ -160,11 +160,11 @@ class PlayerHandler {
         @Override
         public void nextTurn(int n) {
             if (getCurrentPlayer().getCards().size() == 1) {
+                remember = getCurrentPlayer();
                 currentState = waitForMauState;
-                remember = getCurrentPlayer();
             } else if (getCurrentPlayer().getCards().isEmpty()) {
-                currentState = waitForMauMauState;
                 remember = getCurrentPlayer();
+                currentState = waitForMauMauState;
             }
             localNextTurn(n);
         }
@@ -202,8 +202,18 @@ class PlayerHandler {
         @Override
         public void nextTurn(int n) {
             remember.drawCards(1);
+            if (getCurrentPlayer().getCards().isEmpty()) {
+                remember = getCurrentPlayer();
+                currentState = waitForNextTurnState;
+            }
+            else if (getCurrentPlayer().getCards().size() == 1) {
+                remember = getCurrentPlayer();
+                currentState = waitForMauState;
+            }
+            else {
+                currentState = waitForNextTurnState;
+            }
             localNextTurn(n);
-            currentState = waitForMauState;
         }
 
         /**
@@ -241,8 +251,14 @@ class PlayerHandler {
         @Override
         public void nextTurn(int n) {
             remember.drawCards(1);
+            if (getCurrentPlayer().getCards().size() == 1) {
+                remember = getCurrentPlayer();
+                currentState = waitForMauState;
+            }
+            else {
+                currentState = waitForNextTurnState;
+            }
             localNextTurn(n);
-            currentState = waitForMauState;
         }
 
         /**
