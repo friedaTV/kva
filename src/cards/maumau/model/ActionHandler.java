@@ -154,7 +154,7 @@ class ActionHandler {
             case InitializedState s -> GameState.GAME_INITIALIZED;
             case NormalState s -> GameState.PLAY;
             case SevenChosenState s -> GameState.PLAY;
-            case JackChosenState s -> GameState.PLAY;
+            case JackChosenState s -> GameState.CHOOSE_SUIT;
             case SuitChosenState s -> GameState.PLAY;
             case GameFinishedState s -> GameState.GAME_OVER;
             case GameCanceledState s -> GameState.GAME_CANCELED;
@@ -169,11 +169,16 @@ class ActionHandler {
      * @return True if the card can be played, false otherwise.
      */
     boolean canPlay(Card c) {
-        System.out.println(game.getCardHandler().getDiscardPile().getFirst().rank());
-        System.out.println(game.getCardHandler().getDiscardPile().getLast().rank());
-        if (c.suit() == this.chosenSuit && c.rank() != Rank.JACK) {
+        if (this.getGameState() == GameState.CHOOSE_SUIT &&
+            c.suit() == game.getCardHandler().getDiscardPile().getFirst().suit() &&
+            c.rank() != Rank.JACK) {
             return true;
-        } else return c.rank() == game.getCardHandler().getDiscardPile().getLast().rank();
+        } else if (c.rank() == Rank.JACK && getChosenSuit() == c.suit()) {
+            return true;
+        } else {
+            Card top = game.getCardHandler().getDiscardPile().getFirst();
+            return c.rank() == top.rank() || c.suit() == top.suit();
+        }
     }
 
     /**
@@ -341,9 +346,7 @@ class ActionHandler {
                 } else if (c.rank() == Rank.EIGHT) {
                     game.getPlayerHandler().nextTurn(2);
                 } else {
-                    System.out.println(String.format("DEBUG: REMEMBER BEFORE: %s", game.getPlayerHandler().getCurrentPlayer()));
                     game.getPlayerHandler().nextTurn(1);
-                    System.out.println(String.format("DEBUG: REMEMBER BEFORE: %s", game.getPlayerHandler().getCurrentPlayer()));
                 }
             }
         }
@@ -448,9 +451,13 @@ class ActionHandler {
          */
         @Override
         public void no7() {
-            game.getPlayerHandler().getCurrentPlayer().drawCards(2 * get7Counter());
-            reset7Counter();
-            gamePlayState = normalState;
+            if (game.getCardHandler().getDiscardPile().size() + game.getCardHandler().getDrawPile().size() < 2 * get7Counter()) {
+                gamePlayState = gameCanceledState;
+            } else {
+                game.getPlayerHandler().getCurrentPlayer().drawCards(2 * get7Counter());
+                reset7Counter();
+                gamePlayState = normalState;
+            }
         }
 
         /**
